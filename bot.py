@@ -246,18 +246,23 @@ def send_crypto_rates(message):
 def send_history(message):
     chat_id = message.chat.id
     session = Session()
-    conversions = session.query(Conversion).filter_by(user_id=chat_id).order_by(Conversion.id.desc()).limit(10).all()
+    conversions = (
+        session.query(Conversion)
+        .filter_by(user_id=chat_id)
+        .order_by(Conversion.id.desc())
+        .limit(10)
+        .all()
+    )
     session.close()
 
     if not conversions:
-        bot.send_message(chat_id, "ℹ️ You don’t have any saved history yet.")
+        bot.send_message(chat_id, "ℹ️ You don't have any conversion history in the database.")
     else:
-        text = "📝 Your conversion history (from DB):\n\n"
-        for conv in conversions:
-            text += f"{conv.amount} {conv.from_currency} → {conv.result:.2f} {conv.to_currency}\n"
-
+        text = "📝 Your recent conversion history:\n\n"
+        for c in conversions:
+            formatted = f"{c.amount:.2f} {c.from_currency} → {c.result:.4f} {c.to_currency}"
+            text += f"{formatted}\n"
         bot.send_message(chat_id, text)
-
 
 
 print("Bot has been started...")
